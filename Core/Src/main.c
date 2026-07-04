@@ -22,7 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "FreeRTOS.h"
+#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,9 +56,9 @@ const osThreadAttr_t defaultTask_attributes = {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 void StartDefaultTask(void *argument);
-
+void debug_Task(void *argument);
 /* USER CODE BEGIN PFP */
-
+void LED_TASK(void *argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -118,10 +119,15 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+ // defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  xTaskCreate(LED_TASK, "LED", 128, NULL, 2, NULL);
+  xTaskCreate(debug_Task, "Debug", 128, NULL, 1, NULL);
+
+
+  vTaskStartScheduler();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -215,7 +221,23 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void LED_TASK(void *argument)
+{
+	while(1)
+	{
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8);
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
+}
+void debug_Task(void *argument)
+{
+	while(1)
+	{
+		for(volatile int i=0;i<100000; i++);
 
+		vTaskDelay(1000);
+	}
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
